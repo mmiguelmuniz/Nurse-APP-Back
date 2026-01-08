@@ -8,73 +8,73 @@ export declare class ItemsService {
         busca?: string;
         ativos?: boolean;
     }): import(".prisma/client").Prisma.PrismaPromise<{
-        active: boolean;
         id: string;
         createdAt: Date;
-        nome: string;
         categoria: import(".prisma/client").$Enums.ItemCategory;
+        nome: string;
         unidade: string;
         minimo: number;
         estoqueAtual: number;
+        active: boolean;
     }[]>;
     get(id: string): import(".prisma/client").Prisma.Prisma__ItemClient<{
-        active: boolean;
         id: string;
         createdAt: Date;
-        nome: string;
         categoria: import(".prisma/client").$Enums.ItemCategory;
+        nome: string;
         unidade: string;
         minimo: number;
         estoqueAtual: number;
+        active: boolean;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     create(data: any): Promise<{
-        active: boolean;
         id: string;
         createdAt: Date;
-        nome: string;
         categoria: import(".prisma/client").$Enums.ItemCategory;
+        nome: string;
         unidade: string;
         minimo: number;
         estoqueAtual: number;
+        active: boolean;
     }>;
     update(id: string, data: any): Promise<{
-        active: boolean;
         id: string;
         createdAt: Date;
-        nome: string;
         categoria: import(".prisma/client").$Enums.ItemCategory;
+        nome: string;
         unidade: string;
         minimo: number;
         estoqueAtual: number;
+        active: boolean;
     }>;
     remove(id: string): Promise<{
-        active: boolean;
         id: string;
         createdAt: Date;
-        nome: string;
         categoria: import(".prisma/client").$Enums.ItemCategory;
+        nome: string;
         unidade: string;
         minimo: number;
         estoqueAtual: number;
+        active: boolean;
     }>;
     movimento(itemId: string, tipo: MovementType, quantidade: number, motivo?: string, attendanceId?: string): Promise<{
         id: string;
         createdAt: Date;
-        motivo: string | null;
-        attendanceId: string | null;
-        itemId: string;
-        quantidade: number;
         tipo: import(".prisma/client").$Enums.MovementType;
+        quantidade: number;
+        motivo: string | null;
+        itemId: string;
+        attendanceId: string | null;
     }>;
     criticos(): import(".prisma/client").Prisma.PrismaPromise<{
-        active: boolean;
         id: string;
         createdAt: Date;
-        nome: string;
         categoria: import(".prisma/client").$Enums.ItemCategory;
+        nome: string;
         unidade: string;
         minimo: number;
         estoqueAtual: number;
+        active: boolean;
     }[]>;
 }
 //# sourceMappingURL=items.service.d.ts.map

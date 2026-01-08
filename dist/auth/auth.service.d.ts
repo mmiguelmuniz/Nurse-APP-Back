@@ -6,11 +6,11 @@ export declare class AuthService {
     constructor(jwt: JwtService, prisma: PrismaService);
     validateGoogleProfile(profile: any): Promise<{
         id: string;
-        createdAt: Date;
-        name: string;
         email: string;
+        name: string;
         pictureUrl: string | null;
         role: import(".prisma/client").$Enums.Role;
+        createdAt: Date;
     }>;
     signTokens(user: {
         id: string;

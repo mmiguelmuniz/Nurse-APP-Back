@@ -27,7 +27,7 @@ let AuthController = class AuthController {
     async googleCallback(req, res) {
         const user = req.user;
         const tokens = this.auth.signTokens(user);
-        return res.redirect(`${process.env.CORS_ORIGIN}/?access=${tokens.accessToken}&refresh=${tokens.refreshToken}`);
+        return res.redirect(`${process.env.CORS_ORIGIN}/login?access=${tokens.accessToken}&refresh=${tokens.refreshToken}`);
     }
     async refresh(req) {
         var _a;

@@ -15,6 +15,7 @@ const users_module_1 = require("./users/users.module");
 const items_module_1 = require("./items/items.module");
 const attendances_module_1 = require("./attendances/attendances.module");
 const metrics_module_1 = require("./metrics/metrics.module");
+const health_module_1 = require("./health/health.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -23,6 +24,7 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
             prisma_module_1.PrismaModule,
+            health_module_1.HealthModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             items_module_1.ItemsModule,

@@ -5,14 +5,14 @@ export declare class AttendancesController {
     list(query: any): import(".prisma/client").Prisma.PrismaPromise<({
         class: {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             stage: string | null;
         } | null;
         motivo: {
-            active: boolean;
             id: string;
             name: string;
+            active: boolean;
         } | null;
         comunicacao: {
             id: string;
@@ -20,29 +20,29 @@ export declare class AttendancesController {
         } | null;
         medications: ({
             item: {
-                active: boolean;
                 id: string;
                 createdAt: Date;
-                nome: string;
                 categoria: import(".prisma/client").$Enums.ItemCategory;
+                nome: string;
                 unidade: string;
                 minimo: number;
                 estoqueAtual: number;
+                active: boolean;
             };
         } & {
             id: string;
-            attendanceId: string;
-            itemId: string;
             quantidade: number;
+            itemId: string;
+            attendanceId: string;
         })[];
     } & {
         id: string;
         createdAt: Date;
         nome: string;
+        responsavel: string | null;
+        descricao: string | null;
         vinculo: string | null;
         funcao: string | null;
-        descricao: string | null;
-        responsavel: string | null;
         destino: string | null;
         horaChegada: Date | null;
         hgt: number | null;
@@ -56,40 +56,40 @@ export declare class AttendancesController {
         userId: string | null;
     })[]>;
     get(id: string): import(".prisma/client").Prisma.Prisma__AttendanceClient<({
-        medications: ({
-            item: {
-                active: boolean;
-                id: string;
-                createdAt: Date;
-                nome: string;
-                categoria: import(".prisma/client").$Enums.ItemCategory;
-                unidade: string;
-                minimo: number;
-                estoqueAtual: number;
-            };
-        } & {
-            id: string;
-            attendanceId: string;
-            itemId: string;
-            quantidade: number;
-        })[];
         movements: {
             id: string;
             createdAt: Date;
-            motivo: string | null;
-            attendanceId: string | null;
-            itemId: string;
-            quantidade: number;
             tipo: import(".prisma/client").$Enums.MovementType;
+            quantidade: number;
+            motivo: string | null;
+            itemId: string;
+            attendanceId: string | null;
         }[];
+        medications: ({
+            item: {
+                id: string;
+                createdAt: Date;
+                categoria: import(".prisma/client").$Enums.ItemCategory;
+                nome: string;
+                unidade: string;
+                minimo: number;
+                estoqueAtual: number;
+                active: boolean;
+            };
+        } & {
+            id: string;
+            quantidade: number;
+            itemId: string;
+            attendanceId: string;
+        })[];
     } & {
         id: string;
         createdAt: Date;
         nome: string;
+        responsavel: string | null;
+        descricao: string | null;
         vinculo: string | null;
         funcao: string | null;
-        descricao: string | null;
-        responsavel: string | null;
         destino: string | null;
         horaChegada: Date | null;
         hgt: number | null;
@@ -106,10 +106,10 @@ export declare class AttendancesController {
         id: string;
         createdAt: Date;
         nome: string;
+        responsavel: string | null;
+        descricao: string | null;
         vinculo: string | null;
         funcao: string | null;
-        descricao: string | null;
-        responsavel: string | null;
         destino: string | null;
         horaChegada: Date | null;
         hgt: number | null;
@@ -126,10 +126,10 @@ export declare class AttendancesController {
         id: string;
         createdAt: Date;
         nome: string;
+        responsavel: string | null;
+        descricao: string | null;
         vinculo: string | null;
         funcao: string | null;
-        descricao: string | null;
-        responsavel: string | null;
         destino: string | null;
         horaChegada: Date | null;
         hgt: number | null;
@@ -146,10 +146,10 @@ export declare class AttendancesController {
         id: string;
         createdAt: Date;
         nome: string;
+        responsavel: string | null;
+        descricao: string | null;
         vinculo: string | null;
         funcao: string | null;
-        descricao: string | null;
-        responsavel: string | null;
         destino: string | null;
         horaChegada: Date | null;
         hgt: number | null;
