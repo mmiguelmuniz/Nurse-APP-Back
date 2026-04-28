@@ -85,35 +85,44 @@ model Attendance {
 }
 
 model Item {
-  id           String        @id @default(uuid())
-  nome         String
-  categoria    ItemCategory
-  unidade      String
-  minimo       Int           @default(0)
-  estoqueAtual Int           @default(0)
-  active       Boolean       @default(true)
-  createdAt    DateTime      @default(now())
+  id              String        @id @default(uuid())
+  nome            String
+  categoria       ItemCategory
+  unidade         String
+  minimo          Int           @default(0)
+  estoqueAtual    Int           @default(0)
 
-  movements    Movement[]
+  // ✅ NOVO: define se o item baixa estoque automaticamente em atendimentos
+  descontaEstoque Boolean       @default(true)
+
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+
+  movements       Movement[]
   AttendanceMedication AttendanceMedication[]
   @@index([nome])
 }
 
+
 model Movement {
-  id           String       @id @default(uuid())
-  tipo         MovementType
-  quantidade   Int
-  motivo       String?
-  createdAt    DateTime     @default(now())
+  id                  String       @id @default(uuid())
+  tipo                MovementType
+  quantidade          Int
+  motivo              String?
+  createdAt           DateTime     @default(now())
 
-  itemId       String
-  attendanceId String?
+  itemId              String
+  attendanceId        String?
 
-  item         Item         @relation(fields: [itemId], references: [id])
-  attendance   Attendance?  @relation(fields: [attendanceId], references: [id])
+  item                Item         @relation(fields: [itemId], references: [id])
+  attendance          Attendance?  @relation(fields: [attendanceId], references: [id])
+
+  // ✅ NOVO: aparece no histórico, mas só entra no saldo quando true
+  contabilizaEstoque  Boolean      @default(true)
 
   @@index([createdAt])
 }
+
 
 model AttendanceMedication {
   id           String     @id @default(uuid())

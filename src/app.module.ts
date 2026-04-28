@@ -7,6 +7,11 @@ import { ItemsModule } from './items/items.module';
 import { AttendancesModule } from './attendances/attendances.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { HealthModule } from './health/health.module';
+import { ClassesModule } from './classes/classes.module';
+import { ReasonsModule } from './reasons/reasons.module';
+import { CommunicationsModule } from './communications/communications.module';
+import { MovementsModule } from './movements/movements.module';
+
 
 @Module({
   imports: [
@@ -18,6 +23,10 @@ import { HealthModule } from './health/health.module';
     ItemsModule,
     AttendancesModule,
     MetricsModule,
+    ClassesModule,
+    ReasonsModule,
+    CommunicationsModule,
+    MovementsModule,
   ],
 })
 export class AppModule {}

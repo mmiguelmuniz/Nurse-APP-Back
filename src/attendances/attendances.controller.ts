@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, Req } from '@nestjs/common';
 import { AttendancesService } from './attendances.service';
 import { JwtAuthGuard } from '../common/jwt-auth.guard';
 
@@ -18,8 +18,8 @@ export class AttendancesController {
   }
 
   @Post()
-  create(@Body() body: any) {
-    return this.svc.create(body);
+  create(@Req() req: any, @Body() body: any) {
+    return this.svc.create(body, req.user?.id); // ✅ aqui pega do JWT
   }
 
   @Patch(':id')

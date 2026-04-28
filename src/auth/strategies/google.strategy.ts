@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
-import type { Profile } from 'passport'; // <- o tipo vem daqui
+import { AuthService } from '../auth.service';
+import type { Profile } from 'passport';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor() {
+  constructor(private authService: AuthService) {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -17,16 +18,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   async validate(
     accessToken: string,
     refreshToken: string,
-    profile: Profile, // <- agora é o tipo certo
+    profile: Profile,
   ) {
-    const { id, displayName, emails, photos } = profile;
-    return {
-      provider: 'google',
-      providerId: id,
-      name: displayName,
-      email: emails?.[0]?.value,
-      pictureUrl: photos?.[0]?.value,
-      accessToken,
-    };
+    // ⬇️ retorna USUÁRIO DO BANCO (com id)
+    return this.authService.validateGoogleProfile(profile);
   }
 }
