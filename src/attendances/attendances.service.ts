@@ -6,8 +6,18 @@ import { MovementType } from '@prisma/client';
 export class AttendancesService {
   constructor(private prisma: PrismaService) {}
 
-  list(params: any) {
-    const { page = 1, pageSize = 20, busca, turma, motivo, start, end } = params;
+  async list(params: any) {
+    const {
+      page = 1,
+      pageSize = 20,
+      busca,
+      turma,
+      motivo,
+      funcao,
+      emergencia,
+      start,
+      end,
+    } = params;
 
     const where: any = {};
 
@@ -21,6 +31,10 @@ export class AttendancesService {
 
     if (turma) where.classId = turma;
     if (motivo) where.motivoId = motivo;
+    if (funcao && funcao !== 'Todos') where.funcao = funcao;
+    if (emergencia === 'true' || emergencia === true) {
+      where.destino = { contains: 'Emerg' };
+    }
 
     if (start || end) {
       where.createdAt = {
@@ -29,19 +43,27 @@ export class AttendancesService {
       };
     }
 
-    return this.prisma.attendance.findMany({
-      where,
-      include: {
-        user: true,
-        medications: { include: { item: true } },
-        class: true,
-        motivo: true,
-        comunicacao: true,
-      },
-      orderBy: { createdAt: 'desc' },
-      skip: (Number(page) - 1) * Number(pageSize),
-      take: Number(pageSize),
-    });
+    const skip = (Number(page) - 1) * Number(pageSize);
+    const take = Number(pageSize);
+
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.attendance.count({ where }),
+      this.prisma.attendance.findMany({
+        where,
+        include: {
+          user: true,
+          medications: { include: { item: true } },
+          class: true,
+          motivo: true,
+          comunicacao: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+    ]);
+
+    return { items, total, page: Number(page), pageSize: Number(pageSize) };
   }
 
   get(id: string) {
@@ -87,7 +109,6 @@ export class AttendancesService {
         for (const m of data.medications) {
           const quantidade = Number(m.quantidade);
 
-          // 1) sempre registra o item no atendimento (histórico clínico)
           await tx.attendanceMedication.upsert({
             where: {
               attendanceId_itemId: {
@@ -103,25 +124,19 @@ export class AttendancesService {
             update: { quantidade },
           });
 
-          // 2) descobre se esse item deve descontar estoque
           const item = await tx.item.findUnique({
             where: { id: m.itemId },
             select: { id: true, descontaEstoque: true, estoqueAtual: true },
           });
 
-          // se por algum motivo o item não existir, ainda assim não quebra a transação,
-          // mas você pode preferir lançar erro. Mantive seguro:
-          const desconta = item?.descontaEstoque !== false; // default true
+          const desconta = item?.descontaEstoque !== false;
 
-          // 3) se desconta, valida estoque disponível (se não desconta, não valida)
           if (desconta && item) {
             if (item.estoqueAtual < quantidade) {
-              // você pode trocar por BadRequestException se quiser mensagem melhor
               throw new Error(`Estoque insuficiente para o item (${m.itemId}).`);
             }
           }
 
-          // 4) sempre cria movement (auditoria), mas marca se contabiliza ou não
           await tx.movement.create({
             data: {
               itemId: m.itemId,
@@ -129,15 +144,14 @@ export class AttendancesService {
               quantidade,
               attendanceId: attendance.id,
               motivo: 'Uso em atendimento',
-              contabilizaEstoque: desconta, // ✅ a regra
+              contabilizaEstoque: desconta,
             },
           });
 
-          // 5) só recalcula estoque se esse item for controlado
           if (desconta) {
             const agg = await tx.movement.groupBy({
               by: ['tipo'],
-              where: { itemId: m.itemId, contabilizaEstoque: true }, // ✅ ignora movimentos sem baixa
+              where: { itemId: m.itemId, contabilizaEstoque: true },
               _sum: { quantidade: true },
             });
 
@@ -156,8 +170,36 @@ export class AttendancesService {
     });
   }
 
-  update(id: string, data: any) {
-    return this.prisma.attendance.update({ where: { id }, data });
+  async update(id: string, data: any) {
+    const { horaChegada, medications, ...rest } = data;
+    const updateData: any = { ...rest };
+    if (horaChegada !== undefined) {
+      updateData.horaChegada = horaChegada ? new Date(horaChegada) : null;
+    }
+
+    await this.prisma.attendance.update({ where: { id }, data: updateData });
+
+    // Update medications if provided
+    if (Array.isArray(medications)) {
+      // Remove all current medications
+      await this.prisma.attendanceMedication.deleteMany({ where: { attendanceId: id } });
+
+      // Re-create with new list
+      for (const m of medications) {
+        await this.prisma.attendanceMedication.create({
+          data: {
+            attendanceId: id,
+            itemId: m.itemId,
+            quantidade: Number(m.quantidade),
+          },
+        });
+      }
+    }
+
+    return this.prisma.attendance.findUnique({
+      where: { id },
+      include: { medications: { include: { item: true } } },
+    });
   }
 
   remove(id: string) {

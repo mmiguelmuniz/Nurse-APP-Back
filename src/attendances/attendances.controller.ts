@@ -19,11 +19,12 @@ export class AttendancesController {
 
   @Post()
   create(@Req() req: any, @Body() body: any) {
-    return this.svc.create(body, req.user?.id); // ✅ aqui pega do JWT
+    return this.svc.create(body, req.user?.id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() body: any) {
+    console.log('PATCH body:', JSON.stringify(body));
     return this.svc.update(id, body);
   }
 

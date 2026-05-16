@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ItemCategory, MovementType } from '@prisma/client';
 
@@ -8,7 +8,6 @@ export class ItemsService {
 
   list(params: { categoria?: ItemCategory; busca?: string; ativos?: boolean }) {
     const { categoria, busca, ativos } = params;
-
     return this.prisma.item.findMany({
       where: {
         categoria,
@@ -24,7 +23,30 @@ export class ItemsService {
   }
 
   async create(data: any) {
-    return this.prisma.item.create({ data });
+    const { estoqueAtual, ...rest } = data;
+    const inicial = Number(estoqueAtual ?? 0);
+
+    return this.prisma.$transaction(async (tx) => {
+      // Cria o item com estoqueAtual = estoque inicial
+      const item = await tx.item.create({
+        data: { ...rest, estoqueAtual: inicial },
+      });
+
+      // Se tem estoque inicial, cria movement de entrada para manter histórico correto
+      if (inicial > 0) {
+        await tx.movement.create({
+          data: {
+            itemId: item.id,
+            tipo: MovementType.ENTRADA,
+            quantidade: inicial,
+            motivo: 'Estoque inicial',
+            contabilizaEstoque: true,
+          },
+        });
+      }
+
+      return item;
+    });
   }
 
   async update(id: string, data: any) {
@@ -32,7 +54,11 @@ export class ItemsService {
   }
 
   async remove(id: string) {
-    return this.prisma.item.delete({ where: { id } });
+    // Apenas inativa o item — preserva histórico de atendimentos e movimentos
+    return this.prisma.item.update({
+      where: { id },
+      data: { active: false },
+    });
   }
 
   async movimento(
@@ -45,19 +71,27 @@ export class ItemsService {
     const item = await this.prisma.item.findUnique({ where: { id: itemId } });
     if (!item) throw new NotFoundException('Item não encontrado');
 
-    const movement = await this.prisma.$transaction(async (tx) => {
-      const mov = await tx.movement.create({
+    // Bloqueia saída se estoque insuficiente
+    if (tipo === MovementType.SAIDA && item.descontaEstoque && item.estoqueAtual < quantidade) {
+      throw new BadRequestException(
+        `Estoque insuficiente. Disponível: ${item.estoqueAtual} ${item.unidade ?? ''}`
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Cria o movimento com contabilizaEstoque = true
+      await tx.movement.create({
         data: {
           itemId,
           tipo,
           quantidade,
           motivo,
           attendanceId,
-          // contabilizaEstoque fica como default true (manual sempre conta)
+          contabilizaEstoque: item.descontaEstoque !== false,
         },
       });
 
-      // ✅ estoque = soma(ENTRADA) - soma(SAIDA) apenas do que contabilizaEstoque=true
+      // Recalcula saldo somando todos os movimentos contabilizados
       const agg = await tx.movement.groupBy({
         by: ['tipo'],
         where: { itemId, contabilizaEstoque: true },
@@ -65,28 +99,28 @@ export class ItemsService {
       });
 
       const entrada = agg.find((a) => a.tipo === 'ENTRADA')?._sum.quantidade ?? 0;
-      const saida = agg.find((a) => a.tipo === 'SAIDA')?._sum.quantidade ?? 0;
+      const saida   = agg.find((a) => a.tipo === 'SAIDA')?._sum.quantidade ?? 0;
+
+      const novoEstoque = Number(entrada) - Number(saida);
 
       await tx.item.update({
         where: { id: itemId },
-        data: { estoqueAtual: entrada - saida },
+        data: { estoqueAtual: novoEstoque },
       });
 
-      return mov;
+      return { estoqueAtual: novoEstoque };
     });
-
-    return movement;
   }
 
- criticos() {
-  return this.prisma.item.findMany({
-    where: {
-      active: true,
-      descontaEstoque: true,
-      minimo: { gt: 0 },
-      estoqueAtual: { lt: this.prisma.item.fields.minimo },
-    },
-    orderBy: [{ estoqueAtual: 'asc' }, { nome: 'asc' }],
-  });
- }}
-
+  criticos() {
+    return this.prisma.$queryRaw<any[]>`
+      SELECT id, nome, estoqueAtual, minimo, categoria, unidade
+      FROM Item
+      WHERE active = true
+        AND descontaEstoque = true
+        AND minimo > 0
+        AND estoqueAtual < minimo
+      ORDER BY estoqueAtual ASC, nome ASC
+    `;
+  }
+}
