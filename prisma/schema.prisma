@@ -135,3 +135,34 @@ model AttendanceMedication {
 
   @@unique([attendanceId, itemId])
 }
+
+model Student {
+  id                String   @id @default(uuid())
+  studentId         String   @unique
+  name              String
+  gradeLevel        String
+  department        String
+  contact1Name      String?
+  contact1Email     String?
+  contact1Relation  String?
+  contact1Phone     String?
+  contact2Name      String?
+  contact2Email     String?
+  contact2Relation  String?
+  contact2Phone     String?
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([name])
+  @@index([studentId])
+}
+
+model AuthorizedEmail {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      Role     @default(STAFF)
+  name      String?
+  createdAt DateTime @default(now())
+  addedBy   String?
+}

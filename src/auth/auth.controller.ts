@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Res, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, Post, Body, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
@@ -19,13 +19,16 @@ export class AuthController {
   async googleCallback(@Req() req: any, @Res() res: Response) {
     const user = req.user;
     const tokens = this.auth.signTokens(user);
-    return res.redirect(`${process.env.CORS_ORIGIN}/login?access=${tokens.accessToken}&refresh=${tokens.refreshToken}`);
+    return res.redirect(
+      `${process.env.CORS_ORIGIN}/login?access=${tokens.accessToken}&refresh=${tokens.refreshToken}`
+    );
   }
 
   @Post('refresh')
-  async refresh(@Req() req: any) {
-    const refresh = req.body?.refreshToken;
-    return refresh;
+  async refresh(@Body() body: any) {
+    const refreshToken = body?.refresh || body?.refreshToken;
+    if (!refreshToken) throw new UnauthorizedException('Refresh token não fornecido');
+    return this.auth.refreshAccessToken(refreshToken);
   }
 
   @Get('me')
