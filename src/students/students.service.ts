@@ -6,13 +6,16 @@ export class StudentsService {
   constructor(private prisma: PrismaService) {}
 
   search(q: string) {
+    const words = q.trim().split(/\s+/).filter(Boolean)
     return this.prisma.student.findMany({
       where: {
         active: true,
-        OR: [
-          { name:      { contains: q } },
-          { studentId: { contains: q } },
-        ],
+        AND: words.map(word => ({
+          OR: [
+            { name:      { contains: word } },
+            { studentId: { contains: word } },
+          ]
+        })),
       },
       select: {
         id: true, studentId: true, name: true,

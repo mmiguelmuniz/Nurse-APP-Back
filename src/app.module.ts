@@ -12,6 +12,7 @@ import { ReasonsModule } from './reasons/reasons.module';
 import { CommunicationsModule } from './communications/communications.module';
 import { MovementsModule } from './movements/movements.module';
 import { StudentsModule } from './students/students.module';
+import { StaffModule } from './staff/staff.module';
 import { UsersAdminModule } from './users-admin/users-admin.module';
 
 @Module({
@@ -29,6 +30,7 @@ import { UsersAdminModule } from './users-admin/users-admin.module';
     CommunicationsModule,
     MovementsModule,
     StudentsModule,
+    StaffModule,
     UsersAdminModule,
   ],
 })

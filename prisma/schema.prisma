@@ -166,3 +166,16 @@ model AuthorizedEmail {
   createdAt DateTime @default(now())
   addedBy   String?
 }
+
+
+model Staff {
+  id         String   @id @default(uuid())
+  name       String
+  funcao     String?
+  department String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([name])
+}
